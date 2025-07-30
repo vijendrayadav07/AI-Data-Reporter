@@ -9,7 +9,7 @@ def show_basic_info(df):
     st.subheader("📌 Basic Info")
     st.write("**Shape:**", df.shape)
     st.write("**Columns:**", list(df.columns))
-    st.write("**Data Types:**")
+    st.write("**Data Types:***")
     st.dataframe(df.dtypes)
 
 def show_missing_values(df):
