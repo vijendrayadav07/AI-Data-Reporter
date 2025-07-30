@@ -1,16 +1,17 @@
-
-# Ignore virtual environments
+<<<<<<< HEAD
+# Local .gitignore content
 .venv/
-venv/
-
-# Ignore Python cache
-__pycache__/
-*.py[cod]
-
-# Ignore IDE settings
 .idea/
-.vscode/
+=======
+# Remote .gitignore content
+__pycache__/
+*.pyc
+>>>>>>> origin/main
+# Ignore local environments and cache
+.venv/
+.idea/
+__pycache__/
+*.pyc
 
-# OS files
-.DS_Store
-Thumbs.db
+
+
