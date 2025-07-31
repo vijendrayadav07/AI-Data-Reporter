@@ -1,4 +1,4 @@
-#  AI-Data-Reporter
+ Pl#  AI-Data-Reporter
 
 **AI-Data-Reporter** is a Streamlit web app that allows users to upload structured data files (CSV or Excel) and automatically generates insightful visual and textual reports using Python-based analysis and AI techniques.
 
@@ -15,31 +15,48 @@
 ---
 
 ## 📁 Project Structure
+
     AI-Data-Reporter/
-    ├── data2docs/
-    │   ├── app/
-    │   │   ├── main.py
-    │   │   ├── eda.py
-    │   │   └── file_handler.py
-    │   ├── static/
-    │   └── templates/
-    ├── environment.yml
-    ├── .gitignore
-    └── README.md
+    ├──Data2docs/
+    |   └──app/
+    │      ├── main.py # FastAPI backend (optional for APIs)
+    │      ├── services/ # EDA, ML, forecasting logic
+    │      ├── llm/ # LLM integration
+    │      └── utils/ # Helpers
+    ├── streamlit_app/
+    │ └── app.py # Streamlit UI
+    ├── models/ # Trained model files
+    ├── data/ # Sample CSV files
+    ├── notebooks/ # Experiments & testing
+    ├── requirements.txt
+    ├── .venv
+    └── README.md    
 
 
 ---
 
-## 🧱 Tech Stack
+## 🚀 Tech Stack
 
-| Layer          | Tools Used                    |
-|----------------|-------------------------------|
-| Frontend       | Streamlit, Matplotlib, Seaborn |
-| Backend        | Python, Pandas, Jinja2        |
-| AI Engine      | OpenAI GROQ                   |
-| PDF Reports    | WeasyPrint, Jinja2            |
-| File Support   | CSV, Excel (`.xlsx`), JSON    |
-| Secrets        | Streamlit's `.streamlit/secrets.toml |
+### **1** ML, EDA & Forecasting
+- **Python 3.10+**
+- `Pandas`, `NumPy`, `Scikit-learn`, `XGBoost`, `LightGBM`, `CatBoost`
+- `PyCaret` – AutoML
+- `Prophet`, `ARIMA`, `Statsmodels`
+- `Sweetviz`, `Pandas-Profiling`, `Plotly`, `Matplotlib`
+
+### **2** LLM CSV Chat
+- `LangChain`, `PandasAI`, `LlamaIndex`
+-  `Groq + LLaMA3`
+
+### **3** Frontend
+- ✅ `Streamlit` – interactive Python web UI
+- `Plotly`, `Seaborn` – for charts in Streamlit
+
+### **4** Backend
+- `FastAPI` – high-performance async backend (if needed)
+- `Uvicorn` – ASGI server
+- Optional: `SQLite/PostgreSQL`, `Celery + Redis`
+
 
 ##  Setup Instructions
 
