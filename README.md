@@ -30,6 +30,17 @@
 
 ---
 
+## 🧱 Tech Stack
+
+| Layer          | Tools Used                        |
+|----------------|-----------------------------------|
+| Frontend       | Streamlit, Matplotlib, Seaborn    |
+| Backend        | Python, Pandas, Jinja2            |
+| AI Engine      | OpenAI GPT-3.5 / GPT-4             |
+| PDF Reports    | WeasyPrint, Jinja2                |
+| File Support   | CSV, Excel (`.xlsx`), JSON        |
+| Secrets        | Streamlit's `.streamlit/secrets.toml |
+
 ##  Setup Instructions
 
 ### 🔹 Clone the Repository
