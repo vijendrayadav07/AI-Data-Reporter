@@ -25,6 +25,19 @@ def show_missing_values(df):
         st.success("✅ No missing values found!")
 
 
+from sklearn.impute import SimpleImputer
+
+def auto_handle_missing(df):
+    df_filled = df.copy()
+    for col in df.columns:
+        if df[col].dtype == "object":
+            df_filled[col] = df[col].fillna(df[col].mode()[0] if not df[col].mode().empty else "Unknown")
+        else:
+            df_filled[col] = df[col].fillna(df[col].median())
+    return df_filled
+
+
+
 def show_summary_stats(df):
     st.subheader("📊 Summary Statistics")
     st.dataframe(df.describe())
