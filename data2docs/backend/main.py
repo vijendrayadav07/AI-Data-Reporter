@@ -6,6 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import math
 import os
 
+# ----------------- HELPER -----------------
 def sanitize_for_json(data):
     """
     Converts NaN or Infinity values to 0 so JSON is valid.
@@ -21,12 +22,11 @@ def sanitize_for_json(data):
         return [sanitize_for_json(v) for v in data]
     return data
 
+# ----------------- APP & CONFIG -----------------
 app = Flask(__name__)
 
-# ----------------- CONFIG -----------------
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
-    "DATABASE_URL",
-    "sqlite:///ai_data_reporter.db"  # fallback to local sqlite for dev
+    "DATABASE_URL", "sqlite:///ai_data_reporter.db"
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["JWT_SECRET_KEY"] = os.environ.get("FLASK_JWT_SECRET_KEY", "supersecretkey")
@@ -46,12 +46,15 @@ class Report(db.Model):
     content = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
+# ----------------- API PREFIX -----------------
+API_PREFIX = "/api"
+
 # ----------------- ROUTES -----------------
-@app.route("/")
+@app.route(f"{API_PREFIX}/", methods=["GET"])
 def home():
     return jsonify(sanitize_for_json({"message": "Flask server is running 🚀"})), 200
 
-@app.route('/signup', methods=['POST'])
+@app.route(f"{API_PREFIX}/signup", methods=["POST"])
 def signup():
     data = request.get_json()
     if not data or "username" not in data or "password" not in data:
@@ -65,7 +68,7 @@ def signup():
     db.session.commit()
     return jsonify(sanitize_for_json({"message": "User created"})), 201
 
-@app.route('/login', methods=['POST'])
+@app.route(f"{API_PREFIX}/login", methods=["POST"])
 def login():
     data = request.get_json()
     if not data or "username" not in data or "password" not in data:
@@ -78,13 +81,13 @@ def login():
     token = create_access_token(identity=user.username)
     return jsonify(sanitize_for_json({"access_token": token})), 200
 
-@app.route('/reports', methods=['GET', 'POST'])
+@app.route(f"{API_PREFIX}/reports", methods=["GET", "POST"])
 @jwt_required()
 def handle_reports():
     current_user = get_jwt_identity()
     user = User.query.filter_by(username=current_user).first()
 
-    if request.method == 'POST':
+    if request.method == "POST":
         data = request.get_json()
         if not data or "title" not in data or "content" not in data:
             return jsonify(sanitize_for_json({"error": "Invalid request"})), 400
@@ -97,7 +100,7 @@ def handle_reports():
     reports_data = [{"id": r.id, "title": r.title, "content": r.content} for r in reports]
     return jsonify(sanitize_for_json(reports_data)), 200
 
-@app.route('/reports/<int:report_id>', methods=['PUT', 'DELETE'])
+@app.route(f"{API_PREFIX}/reports/<int:report_id>", methods=["PUT", "DELETE"])
 @jwt_required()
 def modify_report(report_id):
     current_user = get_jwt_identity()
@@ -107,7 +110,7 @@ def modify_report(report_id):
     if not report:
         return jsonify(sanitize_for_json({"error": "Report not found"})), 404
 
-    if request.method == 'PUT':
+    if request.method == "PUT":
         data = request.get_json()
         report.title = data.get("title", report.title)
         report.content = data.get("content", report.content)
@@ -122,6 +125,5 @@ def modify_report(report_id):
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()  # create tables if not exist
-    # Use 0.0.0.0 host to allow external connections
     port = int(os.environ.get("PORT", 5000))
     app.run(debug=True, host="0.0.0.0", port=port)
