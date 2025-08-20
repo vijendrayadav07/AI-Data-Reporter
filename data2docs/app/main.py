@@ -14,8 +14,9 @@ from eda import (
 )
 import pandas as pd
 
-BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:5000")
-API_URL = os.getenv("API_URL", "http://localhost:5000")
+
+API_URL = os.getenv("API_URL")  # will get https://my-ai-data-backend.onrender.com
+print(API_URL)
 
 st.set_page_config(page_title="Data2Docs", layout="wide")
 st.title("📊 Data2Docs – AI Report Generator from Any Data File")
