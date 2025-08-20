@@ -32,7 +32,7 @@ def safe_json(res):
     try:
         return res.json()
     except Exception:
-        return {"error": res.text}
+        return {}
 
 if not st.session_state.token:
     action = st.sidebar.radio("Choose", ["Login", "Sign up"])
@@ -45,13 +45,12 @@ if not st.session_state.token:
             if submitted:
                 try:
                     res = requests.post(f"{API_URL}/signup", json={"username": su_username, "password": su_password})
-                    data = safe_json(res)
                     if res.status_code == 201:
                         st.sidebar.success("✅ Account created! Please log in.")
                     else:
-                        st.sidebar.error(data.get("error", "Signup failed"))
+                        st.sidebar.error(safe_json(res).get("error", "Signup failed"))
                 except Exception as e:
-                    st.sidebar.error(f"⚠️ Could not reach backend: {e}")
+                    st.sidebar.error(f"❌ Signup failed: {e}")
 
     else:  # Login
         with st.sidebar.form("login", clear_on_submit=False):
@@ -61,15 +60,14 @@ if not st.session_state.token:
             if login_clicked:
                 try:
                     res = requests.post(f"{API_URL}/login", json={"username": li_username, "password": li_password})
-                    data = safe_json(res)
                     if res.status_code == 200:
-                        st.session_state.token = data.get("access_token")
+                        st.session_state.token = safe_json(res).get("access_token")
                         st.session_state.user = li_username
                         st.sidebar.success(f"Welcome {li_username}!")
                     else:
-                        st.sidebar.error(data.get("error", "Login failed"))
+                        st.sidebar.error(safe_json(res).get("error", "Login failed"))
                 except Exception as e:
-                    st.sidebar.error(f"⚠️ Could not reach backend: {e}")
+                    st.sidebar.error(f"❌ Login failed: {e}")
 else:
     st.sidebar.markdown(f"**Logged in as:** {st.session_state.user}")
     if st.sidebar.button("Logout"):
