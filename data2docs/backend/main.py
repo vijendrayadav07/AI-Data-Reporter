@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
 import math
+import os
 
 def sanitize_for_json(data):
     """
@@ -23,9 +24,12 @@ def sanitize_for_json(data):
 app = Flask(__name__)
 
 # ----------------- CONFIG -----------------
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://Vijendra:12%21%40Vijendra@localhost/ai_data_reporter"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
+    "DATABASE_URL",
+    "sqlite:///ai_data_reporter.db"  # fallback to local sqlite for dev
+)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["JWT_SECRET_KEY"] = "your_secret_key"
+app.config["JWT_SECRET_KEY"] = os.environ.get("FLASK_JWT_SECRET_KEY", "supersecretkey")
 
 db = SQLAlchemy(app)
 jwt = JWTManager(app)
@@ -34,7 +38,7 @@ jwt = JWTManager(app)
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    password = db.Column(db.String(200), nullable=False)  # store hashed password
+    password = db.Column(db.String(200), nullable=False)
 
 class Report(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -47,13 +51,11 @@ class Report(db.Model):
 def home():
     return jsonify(sanitize_for_json({"message": "Flask server is running 🚀"})), 200
 
-# -------- SIGNUP --------
 @app.route('/signup', methods=['POST'])
 def signup():
     data = request.get_json()
     if not data or "username" not in data or "password" not in data:
         return jsonify(sanitize_for_json({"error": "Invalid request"})), 400
-
     if User.query.filter_by(username=data["username"]).first():
         return jsonify(sanitize_for_json({"error": "User already exists"})), 400
 
@@ -63,7 +65,6 @@ def signup():
     db.session.commit()
     return jsonify(sanitize_for_json({"message": "User created"})), 201
 
-# -------- LOGIN --------
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -77,7 +78,6 @@ def login():
     token = create_access_token(identity=user.username)
     return jsonify(sanitize_for_json({"access_token": token})), 200
 
-# -------- REPORTS --------
 @app.route('/reports', methods=['GET', 'POST'])
 @jwt_required()
 def handle_reports():
@@ -97,7 +97,6 @@ def handle_reports():
     reports_data = [{"id": r.id, "title": r.title, "content": r.content} for r in reports]
     return jsonify(sanitize_for_json(reports_data)), 200
 
-# -------- MODIFY REPORT --------
 @app.route('/reports/<int:report_id>', methods=['PUT', 'DELETE'])
 @jwt_required()
 def modify_report(report_id):
@@ -123,4 +122,6 @@ def modify_report(report_id):
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()  # create tables if not exist
-    app.run(debug=True, port=5000)
+    # Use 0.0.0.0 host to allow external connections
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=True, host="0.0.0.0", port=port)
