@@ -24,10 +24,10 @@ def sanitize_for_json(data):
 
 # ----------------- APP & CONFIG -----------------
 app = Flask(__name__)
-
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
-    "DATABASE_URL", "sqlite:///ai_data_reporter.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = (
+    "mysql+pymysql://root:12%21%40Vijendra@localhost/ai_data_reporter"
 )
+
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["JWT_SECRET_KEY"] = os.environ.get("FLASK_JWT_SECRET_KEY", "supersecretkey")
 
@@ -50,9 +50,14 @@ class Report(db.Model):
 API_PREFIX = "/api"
 
 # ----------------- ROUTES -----------------
-@app.route(f"{API_PREFIX}/", methods=["GET"])
+@app.route("/")
 def home():
+    return {"message": "Backend is running!"}
+
+@app.route(f"{API_PREFIX}/", methods=["GET"])
+def api_home():   # <-- changed function name
     return jsonify(sanitize_for_json({"message": "Flask server is running 🚀"})), 200
+
 
 @app.route(f"{API_PREFIX}/signup", methods=["POST"])
 def signup():
