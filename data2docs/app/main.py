@@ -69,7 +69,7 @@ if not st.session_state.token:
             login_clicked = st.form_submit_button("Login")
             if login_clicked:
                 try:
-                    res = requests.post(f"{API_BASEL}/login", json={"username": li_username, "password": li_password})
+                    res = requests.post(f"{API_BASE}/login", json={"username": li_username, "password": li_password})
                     if res.status_code == 200:
                         st.session_state.token = safe_json(res).get("access_token")
                         st.session_state.user = li_username
