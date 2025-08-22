@@ -3,6 +3,8 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_cors import CORS
+
 import math
 import os
 
@@ -23,8 +25,8 @@ def sanitize_for_json(data):
     return data
 
 # ----------------- APP & CONFIG -----------------
-
 app = Flask(__name__)
+CORS(app)
 
 # Get DB URL from environment
 db_url = os.environ.get("DATABASE_URL")
@@ -34,7 +36,7 @@ if db_url and db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
 
 # Use fallback for local dev if no DATABASE_URL set
-app.config["SQLALCHEMY_DATABASE_URI"] = db_url or "postgresql+psycopg2://ai_data_reporter_db_user:owTDX9tqOuaB57A5gh7Zxw3FTpyjhbOD@dpg-d2k4qf63jp1c73fqh62g-a.oregon-postgres.render.com/ai_data_reporter_db"
+app.config["SQLALCHEMY_DATABASE_URI"] = db_url or "postgresql+psycopg2://ai_data_reporter_db_user:9tqOuaB57A5gh7Zxw3FTpyjhbOD@dpg-d2k4qf63jp1c73fqh62g-a.oregon-postgres.render.com/ai_data_reporter_db"
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["JWT_SECRET_KEY"] = os.environ.get("FLASK_JWT_SECRET_KEY", "supersecretkey")
@@ -63,9 +65,8 @@ def home():
     return {"message": "Backend is running!"}
 
 @app.route(f"{API_PREFIX}/", methods=["GET"])
-def api_home():   # <-- changed function name
+def api_home():
     return jsonify(sanitize_for_json({"message": "Flask server is running 🚀"})), 200
-
 
 @app.route(f"{API_PREFIX}/signup", methods=["POST"])
 def signup():
@@ -134,10 +135,15 @@ def modify_report(report_id):
     db.session.commit()
     return jsonify(sanitize_for_json({"message": "Report deleted"})), 200
 
+# ----------------- DB INIT -----------------
+@app.before_first_request
+def create_tables():
+    """Ensure tables exist (important for Render deployment)."""
+    db.create_all()
+
 # ----------------- RUN -----------------
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()  # create tables if not exist
+        db.create_all()  # local dev
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-

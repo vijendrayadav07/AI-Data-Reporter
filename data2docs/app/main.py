@@ -14,7 +14,7 @@ from eda import (
 )
 # ---------------- CONFIG ----------------
 # API_URL = "http://127.0.0.1:5000/api"  # Local testing
-API_URL = "https://ai-data-reporter.onrender.com"  # For deployment
+API_URL = "https://ai-data-reporter.onrender.com/api"  # For deployment
 
 st.set_page_config(page_title="Data2Docs - Vijendra", layout="wide")
 st.title("📊 Data2Docs – AI Report Generator (by **Vijendra**)")
