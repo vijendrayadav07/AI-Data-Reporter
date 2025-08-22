@@ -23,10 +23,18 @@ def sanitize_for_json(data):
     return data
 
 # ----------------- APP & CONFIG -----------------
+
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = (
-    "mysql+pymysql://root:12%21%40Vijendra@localhost/ai_data_reporter"
-)
+
+# Get DB URL from environment
+db_url = os.environ.get("DATABASE_URL")
+
+# Render gives postgres:// but SQLAlchemy needs postgresql+psycopg2://
+if db_url and db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
+
+# Use fallback for local dev if no DATABASE_URL set
+app.config["SQLALCHEMY_DATABASE_URI"] = db_url or "postgresql+psycopg2://ai_data_reporter_db_user:owTDX9tqOuaB57A5gh7Zxw3FTpyjhbOD@dpg-d2k4qf63jp1c73fqh62g-a.oregon-postgres.render.com/ai_data_reporter_db"
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["JWT_SECRET_KEY"] = os.environ.get("FLASK_JWT_SECRET_KEY", "supersecretkey")
