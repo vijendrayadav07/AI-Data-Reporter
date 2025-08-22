@@ -1,1 +1,3 @@
-web: gunicorn backend.main:app
+web: gunicorn data2docs.backend.main:app
+web: streamlit run data2docs/app/main.py --server.port $PORT --server.address 0.0.0.0
+
