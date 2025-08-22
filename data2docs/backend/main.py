@@ -10,10 +10,7 @@ import os
 
 # ----------------- HELPER -----------------
 def sanitize_for_json(data):
-    """
-    Converts NaN or Infinity values to 0 so JSON is valid.
-    Works recursively for dicts and lists.
-    """
+    """Fix NaN/Infinity for valid JSON (works recursively)."""
     if isinstance(data, float):
         if math.isnan(data) or math.isinf(data):
             return 0.0
@@ -35,8 +32,9 @@ db_url = os.environ.get("DATABASE_URL")
 if db_url and db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
 
-# Use fallback for local dev if no DATABASE_URL set
+# Fallback for local dev
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url or "postgresql+psycopg2://ai_data_reporter_db_user:owTDX9tqOuaB57A5gh7Zxw3FTpyjhbOD@dpg-d2k4qf63jp1c73fqh62g-a.oregon-postgres.render.com/ai_data_reporter_db"
+
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["JWT_SECRET_KEY"] = os.environ.get("FLASK_JWT_SECRET_KEY", "supersecretkey")
@@ -72,28 +70,28 @@ def api_home():
 def signup():
     data = request.get_json()
     if not data or "username" not in data or "password" not in data:
-        return jsonify(sanitize_for_json({"error": "Invalid request"})), 400
+        return jsonify({"error": "Invalid request"}), 400
     if User.query.filter_by(username=data["username"]).first():
-        return jsonify(sanitize_for_json({"error": "User already exists"})), 400
+        return jsonify({"error": "User already exists"}), 400
 
     hashed_pw = generate_password_hash(data["password"])
     new_user = User(username=data["username"], password=hashed_pw)
     db.session.add(new_user)
     db.session.commit()
-    return jsonify(sanitize_for_json({"message": "User created"})), 201
+    return jsonify({"message": "User created"}), 201
 
 @app.route(f"{API_PREFIX}/login", methods=["POST"])
 def login():
     data = request.get_json()
     if not data or "username" not in data or "password" not in data:
-        return jsonify(sanitize_for_json({"error": "Invalid request"})), 400
+        return jsonify({"error": "Invalid request"}), 400
 
     user = User.query.filter_by(username=data["username"]).first()
     if not user or not check_password_hash(user.password, data["password"]):
-        return jsonify(sanitize_for_json({"error": "Invalid credentials"})), 401
+        return jsonify({"error": "Invalid credentials"}), 401
 
     token = create_access_token(identity=user.username)
-    return jsonify(sanitize_for_json({"access_token": token})), 200
+    return jsonify({"access_token": token}), 200
 
 @app.route(f"{API_PREFIX}/reports", methods=["GET", "POST"])
 @jwt_required()
@@ -104,15 +102,15 @@ def handle_reports():
     if request.method == "POST":
         data = request.get_json()
         if not data or "title" not in data or "content" not in data:
-            return jsonify(sanitize_for_json({"error": "Invalid request"})), 400
+            return jsonify({"error": "Invalid request"}), 400
         new_report = Report(title=data["title"], content=data["content"], user_id=user.id)
         db.session.add(new_report)
         db.session.commit()
-        return jsonify(sanitize_for_json({"message": "Report created"})), 201
+        return jsonify({"message": "Report created"}), 201
 
     reports = Report.query.filter_by(user_id=user.id).all()
     reports_data = [{"id": r.id, "title": r.title, "content": r.content} for r in reports]
-    return jsonify(sanitize_for_json(reports_data)), 200
+    return jsonify(reports_data), 200
 
 @app.route(f"{API_PREFIX}/reports/<int:report_id>", methods=["PUT", "DELETE"])
 @jwt_required()
@@ -122,23 +120,35 @@ def modify_report(report_id):
     report = Report.query.filter_by(id=report_id, user_id=user.id).first()
 
     if not report:
-        return jsonify(sanitize_for_json({"error": "Report not found"})), 404
+        return jsonify({"error": "Report not found"}), 404
 
     if request.method == "PUT":
         data = request.get_json()
         report.title = data.get("title", report.title)
         report.content = data.get("content", report.content)
         db.session.commit()
-        return jsonify(sanitize_for_json({"message": "Report updated"})), 200
+        return jsonify({"message": "Report updated"}), 200
 
     db.session.delete(report)
     db.session.commit()
-    return jsonify(sanitize_for_json({"message": "Report deleted"})), 200
+    return jsonify({"message": "Report deleted"}), 200
+
+# ----------------- DEBUG ROUTE -----------------
+@app.route(f"{API_PREFIX}/debug", methods=["GET"])
+def debug():
+    try:
+        users = User.query.all()
+        return jsonify({"users": [u.username for u in users]})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # ----------------- DB INIT -----------------
-# Ensure tables exist even when loaded by gunicorn
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+        print("✅ Database tables created/verified")
+    except Exception as e:
+        print("❌ DB Init Error:", e)
 
 # ----------------- RUN -----------------
 if __name__ == "__main__":
