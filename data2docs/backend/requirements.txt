@@ -3,4 +3,4 @@ Flask_SQLAlchemy
 Flask_JWT_Extended
 pymysql
 Werkzeug
-gunicorn==23.0.0
+gunicorn
