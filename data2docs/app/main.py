@@ -29,6 +29,7 @@ for key in ["token", "user", "stats", "insights", "df_clean"]:
 def safe_json(res):
     try:
         return res.json()
+    ##
     except Exception:
         return {}
 

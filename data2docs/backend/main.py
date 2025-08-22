@@ -58,6 +58,7 @@ class Report(db.Model):
 
 # ----------------- API PREFIX -----------------
 API_PREFIX = "/api"
+##
 
 # ----------------- ROUTES -----------------
 @app.route("/")
