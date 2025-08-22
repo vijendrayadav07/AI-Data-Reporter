@@ -1,3 +1,1 @@
-web: gunicorn backend.main:app
-web: streamlit run app/main.py --server.port $PORT --server.address 0.0.0.0
-
+web: uvicorn backend.main:app --host 0.0.0.0 --port 8000
