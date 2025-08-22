@@ -137,14 +137,11 @@ def modify_report(report_id):
     return jsonify(sanitize_for_json({"message": "Report deleted"})), 200
 
 # ----------------- DB INIT -----------------
-@app.before_first_request
-def create_tables():
-    """Ensure tables exist (important for Render deployment)."""
-    db.create_all()
 
+# ----------------- RUN -----------------
 # ----------------- RUN -----------------
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()  # local dev
+        db.create_all()  # ensures tables exist before server starts
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
